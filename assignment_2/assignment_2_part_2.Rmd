@@ -1,0 +1,64 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r echo=FALSE, warning=FALSE}
+library(here)
+library(dplyr)
+library(data.table)
+library(survival)
+```
+
+```{r}
+
+section1_4 <- fread(here('Section1_4.dat'), 
+                   sep = ' ', col.names = c('Time_To_Infection','Censored','Treatment'), 
+                   colClasses = c('numeric', 'numeric', 'numeric'))
+
+kmp<-survfit(Surv(section1_4$Time_To_Infection,section1_4$Censored)~section1_4$Treatment,type="kaplan-meier")
+
+df_summary <- fortify(kmp)
+
+print(df_summary)
+
+```
+
+
+```{r}
+
+print(kmp, print.rmean=TRUE)
+```
+```{r}
+
+print(18.6 + (qnorm(0.975,0,1)*1.69))
+
+print(18.6 - (qnorm(0.975,0,1)*1.69))
+
+```
+
+```{r}
+
+print(23.3 + (qnorm(0.975,0,1)*1.35))
+
+print(23.3 - (qnorm(0.975,0,1)*1.35))
+
+```
+
+
+```{r}
+surg_placed = section1_4[section1_4$Treatment == 1]
+
+kmp<-survfit(Surv(surg_placed$Time_To_Infection,surg_placed$Censored)~surg_placed$Treatment,type="kaplan-meier", conf.int=0.9, conf.type='log-log')
+
+surg_placed_summary <- fortify(kmp)
+
+print(surg_placed_summary)
+```
+```{r}
+
+print(0.8721635 + (qnorm(0.975,0,1)*0.06144666))
+
+print(0.8721635 - (qnorm(0.975,0,1)*0.06144666))
+
+```
