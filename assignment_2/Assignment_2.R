@@ -3,8 +3,9 @@ library(data.table)
 library(readr)
 library(survival)
 library(survminer)
+library(here)
 
-data <- read_delim('H:/Werk/Survival Analysis/Data sets/Section1_4.dat', 
+data <- read_delim(here('Section1_4.dat'), 
                    delim = ' ', col_names = c('Time_To_Infection','Censored','Treatment'), 
                    col_types = cols(Time_To_Infection = 'n', Censored = 'n', Treatment = 'n'))
 

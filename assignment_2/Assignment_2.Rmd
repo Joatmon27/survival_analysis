@@ -14,9 +14,9 @@ library(ggfortify)
 ```
 
 ```{r data, echo=FALSE, warning=FALSE, message=FALSE}
-data <- read_delim('H:/Werk/Survival Analysis/Data sets/Section1_4.dat', 
-                   delim = ' ', col_names = c('Time_To_Infection','Censored','Treatment'), 
-                   col_types = cols(Time_To_Infection = 'n', Censored = 'n', Treatment = 'n'))
+data <- fread(here('Section1_4.dat'), 
+                   sep = ' ', col.names = c('Time_To_Infection','Censored','Treatment'), 
+                   colClasses = c('numeric', 'numeric', 'numeric'))
 ```
 Below is a table summarising the survival function estimates, $\hat{S(t)}$, along with their standard errors, $\sigma$. As we are estimating the survival function, we employed the Kaplan-Meier method as it estimates the survival function directly (as opposed to the cumulative hazard rate, which would require a conversion)
 
