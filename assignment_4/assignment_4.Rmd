@@ -1,0 +1,86 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r, echo=FALSE, warning=FALSE}
+library(data.table)
+library(survival)
+library(survminer)
+library(ggfortify)
+library(ggplot2)
+```
+
+
+```{r}
+
+data <- fread('Section1_9.dat',col.names = c('Surv_Time','Treatment','Censored'),colClasses = c('numeric', 'numeric', 'numeric'))
+
+surv_obj <- survdiff(Surv(time = data$Surv_Time, 
+                         event = data$Censored)~offset(exp(-0.045*data$Surv_Time)), 
+                    subset = data$Treatment==1,
+                    type="kaplan-meier")
+
+df_summary <- fortify(surv_obj)
+
+etau <- sum(-log(df_summary$surv))
+
+x <- seq(0, 1, length.out=48)
+dat <- data.frame(x=x, px=dexp(x, rate=0.045))
+
+ggsurv <- ggsurvplot(surv_obj , data = data, xlab="Time to infection",
+                     ylab="Survival estimate",
+                     legend.labs = c("Auto"), linetype = 'strata') + 
+  labs(title    = "Leukemia free-survival times (in months) for Autologous and Allogeneic Transplants",
+       subtitle = "Based on Kaplan-Meier estimates")
+
+ggsurv$plot <- ggsurv$plot + geom_line(aes(x=dat$x, y=dat$px))
+
+ggsurv <- ggpar(ggsurv, font.title    = c(14, "bold"),
+                font.subtitle = c(12, "bold.italic"),        
+                font.x        = c(11, "plain"),          
+                font.y        = c(11, "plain"))
+
+print(ggsurv)
+```
+```{r}
+dchisq(etau, 1)
+
+pchisq(0.045, df = 1, lower.tail = FALSE)
+
+```
+```{r}
+1-pchisq(0.045, df = 1, lower.tail = FALSE)
+
+```
+```{r}
+
+pchisq(0.045, df = 1)
+
+```
+
+```{r}
+burn_data <- fread('Section1_6.dat',col.names = c('Patient_ID', 'Treatment', 'Gender', 'Race', 'Perc_Area_Burned', 'BSI_Head', 'BSI_Butt', 'BSI_Trunk', 'BSI_Upper', 'BSI_Lower', 'BSI_Resp', 'TOB', 'TTE', 'Excision_Ind', 'TTPAT', 'PAT', 'TTSAI', 'SAI'))
+
+burn_data <- burn_data[,c("Treatment","TTSAI","SAI")]
+chi_Stat <- survdiff(Surv(TTSAI,SAI) ~ Treatment, data=burn_data)$chisq
+
+surf_obj_burn <- survfit(Surv(TTSAI,SAI) ~ Treatment, data=burn_data)
+surf_obj_burn_2 <- survfit(Surv(TTSAI,SAI), data=burn_data)
+
+Dth1 = Rsk1 = numeric(length(surf_obj_burn_2$time))
+Dth1[match(surf_obj_burn$time[38:73],surf_obj_burn_2$time)] = tmpsrv$n.ev[38:73]
+
+maxind1 = match(surf_obj_burn$time[73],surf_obj_burn_2$time)
+for(i in 1:maxind1) 
+   Rsk1[i] = max(surf_obj_burn$n.risk[38:73][
+   surf_obj_burn$time[38:73] >= surf_obj_burn_2$time[i]])
+
+Rsk1Frac = Rsk1/surf_obj_burn_2$n.risk
+Gehan = sum(surf_obj_burn_2$n.risk*(Dth1 - Rsk1Frac*surf_obj_burn_2$n.ev))/
+sqrt(sum(surf_obj_burn_2$n.risk^2*Rsk1Frac*(1-Rsk1Frac)*surf_obj_burn_2$n.ev))
+round(c(stat = Gehan, chisq= Gehan^2, pval=1-pchisq(Gehan^2,1)),3)
+
+TaronWar = sum(sqrt(surf_obj_burn_2$n.risk)*(Dth1 - Rsk1Frac*surf_obj_burn_2$n.ev))/sqrt(sum(surf_obj_burn_2$n.risk*Rsk1Frac*(1-Rsk1Frac)*surf_obj_burn_2$n.ev))
+round(c(stat = TaronWar, chisq= TaronWar^2, pval=1-pchisq(TaronWar^2,1)),3)
+```
