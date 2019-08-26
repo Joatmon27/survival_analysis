@@ -34,8 +34,6 @@ ggsurv <- ggsurvplot(surv_obj , data = data, xlab="Time to infection",
   labs(title    = "Leukemia free-survival times (in months) for Autologous and Allogeneic Transplants",
        subtitle = "Based on Kaplan-Meier estimates")
 
-ggsurv$plot <- ggsurv$plot + geom_line(aes(x=dat$x, y=dat$px))
-
 ggsurv <- ggpar(ggsurv, font.title    = c(14, "bold"),
                 font.subtitle = c(12, "bold.italic"),        
                 font.x        = c(11, "plain"),          
@@ -83,4 +81,29 @@ round(c(stat = Gehan, chisq= Gehan^2, pval=1-pchisq(Gehan^2,1)),3)
 
 TaronWar = sum(sqrt(surf_obj_burn_2$n.risk)*(Dth1 - Rsk1Frac*surf_obj_burn_2$n.ev))/sqrt(sum(surf_obj_burn_2$n.risk*Rsk1Frac*(1-Rsk1Frac)*surf_obj_burn_2$n.ev))
 round(c(stat = TaronWar, chisq= TaronWar^2, pval=1-pchisq(TaronWar^2,1)),3)
+```
+```{r}
+rat_data <- as.data.frame(matrix(c(20,21,23,24,24,26,26,27,28,30,26,28,29,29,30,30,31,31,32,35,31,32,34,35,36,38,38,39,42,42,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,3,3,3,3,3,3,3,3,3,3,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,0,0), nrow=30,byrow=FALSE))
+
+colnames(rat_data) <- c('death_times','treatment','censored')
+
+rat_data
+```
+```{r}
+kmp <-survfit(Surv(rat_data$death_times,rat_data$censored)~rat_data$treatment,type="kaplan-meier")
+
+ggsurv_rats <- ggsurvplot(kmp, data = rat_data, xlab="Days to death",
+                          ylab="Survival Estimate",
+                          legend.labs = c("Untreated", "Radiated", "Radiated+BPA"), 
+                          linetype = 'strata') + 
+        labs(title = "Survival estimates for rats in the study",
+        subtitle = "Based on Nelson-Aalen estimates")
+
+ggsurv_rats <- ggpar(ggsurv_rats, 
+                     font.title    = c(14, "bold"),
+                     font.subtitle = c(12, "bold.italic"),        
+                     font.x        = c(11, "plain"),          
+                     font.y        = c(11, "plain"))
+
+print(ggsurv_rats)
 ```
