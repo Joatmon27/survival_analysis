@@ -179,7 +179,7 @@ cards;
   154   1   0   1   35   1   1   1   0   0   0   4   10   1   27   0   27   0
 ;
 run;
-
+/*
 proc print data=burn_data;
 run;
 
@@ -187,3 +187,35 @@ proc lifetest data=burn_data plot=(s);
 time TTSAI*SAI(0);
 strata Treatment;
 run;
+*/
+data burn_data_029 burn_data_3050 burn_data_51100;
+  set burn_data ;
+  if Perc_Area_Burned < 30 then output burn_data_029;
+  else if Perc_Area_Burned > 30 & Perc_Area_Burned < 51 then output burn_data_3050;
+  else if Perc_Area_Burned > 50 then output burn_data_51100;
+run;
+
+proc print data=burn_data_029;
+run;
+
+proc lifetest data=burn_data_029;
+time TTSAI*SAI(0);
+strata Treatment;
+run;
+
+proc print data=burn_data_3050;
+run;
+
+proc lifetest data=burn_data_3050;
+time TTSAI*SAI(0);
+strata Treatment;
+run;
+
+proc print data=burn_data_51100;
+run;
+
+proc lifetest data=burn_data_51100;
+time TTSAI*SAI(0);
+strata Treatment;
+run;
+
