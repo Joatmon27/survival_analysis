@@ -4,51 +4,53 @@ output: html_notebook
 ---
 
 ```{r, echo=FALSE, warning=FALSE}
+library(survminer)
 library(data.table)
 library(survival)
-library(survminer)
-library(ggfortify)
 library(ggplot2)
 ```
 
 
 ```{r}
 
-data <- fread('Section1_9.dat',col.names = c('Surv_Time','Treatment','Censored'),colClasses = c('numeric', 'numeric', 'numeric'))
+data <- read.table('Section1_9.dat',col.names = c('Surv_Time','Treatment','Censored'),colClasses = c('numeric', 'numeric', 'numeric'))
 
-surv_obj <- survdiff(Surv(time = data$Surv_Time, 
-                         event = data$Censored)~offset(exp(-0.045*data$Surv_Time)), 
-                    subset = data$Treatment==1,
+surv_obj <- survfit(Surv(time = data$Surv_Time, 
+                         event = data$Censored)~data$Treatment, 
+                    subset = data$Treatment==2,
                     type="kaplan-meier")
 
-df_summary <- fortify(surv_obj)
+surv_summary <- summary(surv_obj)
 
-etau <- sum(-log(df_summary$surv))
+surv.estimates <- surv_obj$surv
+surv.times <- surv_obj$time
 
-x <- seq(0, 1, length.out=48)
-dat <- data.frame(x=x, px=dexp(x, rate=0.045))
+x <- seq(0, 50, length.out=1000)
+y <- exp(-0.045*x)
 
-ggsurv <- ggsurvplot(surv_obj , data = data, xlab="Time to infection",
-                     ylab="Survival estimate",
-                     legend.labs = c("Auto"), linetype = 'strata') + 
-  labs(title    = "Leukemia free-survival times (in months) for Autologous and Allogeneic Transplants",
-       subtitle = "Based on Kaplan-Meier estimates")
-
-ggsurv <- ggpar(ggsurv, font.title    = c(14, "bold"),
-                font.subtitle = c(12, "bold.italic"),        
-                font.x        = c(11, "plain"),          
-                font.y        = c(11, "plain"))
-
-print(ggsurv)
+plot(x=surv.times, y=surv.estimates, type='s', xlab="Time to infection", ylab="Survival estimate", 
+     main = "Leukemia free-survival times (in months) for Autologous and Allogeneic Transplants",
+     sub = "Based on Kaplan-Meier estimates", col = "blue", lty=2)
+lines(x = x,y, lwd=1.5, lty=1)
+legend(45,1,legend = c("Auto","Null Hypothesis"))
 ```
 ```{r}
-dchisq(etau, 1)
 
-pchisq(0.045, df = 1, lower.tail = FALSE)
+stat <- (sum(surv_summary$n.event) - sum(0.045*surv_summary$time))^2/sum(0.045*surv_summary$time)
+
+norm.stat <- sqrt(stat)
+
+1-pnorm(q = norm.stat, mean = 0, sd = 1)
+
+pnorm(q = norm.stat, mean = 0, sd = 1)
+
+pchisq(stat, df = 1, lower.tail = FALSE)
 
 ```
 ```{r}
-1-pchisq(0.045, df = 1, lower.tail = FALSE)
+1-pchisq(stat, df = 1, lower.tail = FALSE)
+
+1-pchisq(stat, df=1, lower.tail=FALSE)-pchisq(-stat,df=1)
 
 ```
 ```{r}
@@ -97,7 +99,7 @@ ggsurv_rats <- ggsurvplot(kmp, data = rat_data, xlab="Days to death",
                           legend.labs = c("Untreated", "Radiated", "Radiated+BPA"), 
                           linetype = 'strata') + 
         labs(title = "Survival estimates for rats in the study",
-        subtitle = "Based on Nelson-Aalen estimates")
+        subtitle = "Based on Kaplan-Meier estimates")
 
 ggsurv_rats <- ggpar(ggsurv_rats, 
                      font.title    = c(14, "bold"),
@@ -106,4 +108,32 @@ ggsurv_rats <- ggpar(ggsurv_rats,
                      font.y        = c(11, "plain"))
 
 print(ggsurv_rats)
+
+summary(kmp)
+```
+```{r}
+rats_1_2 <- rat_data[rat_data$treatment == 1 | rat_data$treatment == 2,]
+rats_1_3 <- rat_data[rat_data$treatment == 1 | rat_data$treatment == 3,]
+rats_2_3 <- rat_data[rat_data$treatment == 2 | rat_data$treatment == 3,]
+
+rats_surv_1_2 <- survdiff(Surv(time = rats_1_2$death_times, 
+                         event = rats_1_2$censored)~rats_1_2$treatment)
+
+print(rats_surv_1_2$chisq)
+
+print(pchisq(rats_surv_1_2$chisq,1,lower.tail = FALSE))
+
+rats_surv_1_3 <- survdiff(Surv(time = rats_1_3$death_times, 
+                         event = rats_1_3$censored)~rats_1_3$treatment)
+
+print(rats_surv_1_3$chisq)
+
+print(pchisq(rats_surv_1_3$chisq,1,lower.tail = FALSE))
+
+rats_surv_2_3 <- survdiff(Surv(time = rats_2_3$death_times, 
+                         event = rats_2_3$censored)~rats_2_3$treatment)
+
+print(rats_surv_2_3$chisq)
+
+print(pchisq(rats_surv_2_3$chisq,1,lower.tail = FALSE))
 ```
