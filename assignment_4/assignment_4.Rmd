@@ -1,0 +1,139 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r, echo=FALSE, warning=FALSE}
+library(survminer)
+library(data.table)
+library(survival)
+library(ggplot2)
+```
+
+
+```{r}
+
+data <- read.table('Section1_9.dat',col.names = c('Surv_Time','Treatment','Censored'),colClasses = c('numeric', 'numeric', 'numeric'))
+
+surv_obj <- survfit(Surv(time = data$Surv_Time, 
+                         event = data$Censored)~data$Treatment, 
+                    subset = data$Treatment==2,
+                    type="kaplan-meier")
+
+surv_summary <- summary(surv_obj)
+
+surv.estimates <- surv_obj$surv
+surv.times <- surv_obj$time
+
+x <- seq(0, 50, length.out=1000)
+y <- exp(-0.045*x)
+
+plot(x=surv.times, y=surv.estimates, type='s', xlab="Time to infection", ylab="Survival estimate", 
+     main = "Leukemia free-survival times (in months) for Autologous and Allogeneic Transplants",
+     sub = "Based on Kaplan-Meier estimates", col = "blue", lty=2)
+lines(x = x,y, lwd=1.5, lty=1)
+legend(45,1,legend = c("Auto","Null Hypothesis"))
+```
+```{r}
+
+stat <- (sum(surv_summary$n.event) - sum(0.045*surv_summary$time))^2/sum(0.045*surv_summary$time)
+
+norm.stat <- sqrt(stat)
+
+1-pnorm(q = norm.stat, mean = 0, sd = 1)
+
+pnorm(q = norm.stat, mean = 0, sd = 1)
+
+pchisq(stat, df = 1, lower.tail = FALSE)
+
+```
+```{r}
+1-pchisq(stat, df = 1, lower.tail = FALSE)
+
+1-pchisq(stat, df=1, lower.tail=FALSE)-pchisq(-stat,df=1)
+
+```
+```{r}
+
+pchisq(0.045, df = 1)
+
+```
+
+```{r}
+burn_data <- fread('Section1_6.dat',col.names = c('Patient_ID', 'Treatment', 'Gender', 'Race', 'Perc_Area_Burned', 'BSI_Head', 'BSI_Butt', 'BSI_Trunk', 'BSI_Upper', 'BSI_Lower', 'BSI_Resp', 'TOB', 'TTE', 'Excision_Ind', 'TTPAT', 'PAT', 'TTSAI', 'SAI'))
+
+burn_data <- burn_data[,c("Treatment","TTSAI","SAI")]
+chi_Stat <- survdiff(Surv(TTSAI,SAI) ~ Treatment, data=burn_data)$chisq
+
+surf_obj_burn <- survfit(Surv(TTSAI,SAI) ~ Treatment, data=burn_data)
+surf_obj_burn_2 <- survfit(Surv(TTSAI,SAI), data=burn_data)
+
+Dth1 = Rsk1 = numeric(length(surf_obj_burn_2$time))
+Dth1[match(surf_obj_burn$time[38:73],surf_obj_burn_2$time)] = tmpsrv$n.ev[38:73]
+
+maxind1 = match(surf_obj_burn$time[73],surf_obj_burn_2$time)
+for(i in 1:maxind1) 
+   Rsk1[i] = max(surf_obj_burn$n.risk[38:73][
+   surf_obj_burn$time[38:73] >= surf_obj_burn_2$time[i]])
+
+Rsk1Frac = Rsk1/surf_obj_burn_2$n.risk
+Gehan = sum(surf_obj_burn_2$n.risk*(Dth1 - Rsk1Frac*surf_obj_burn_2$n.ev))/
+sqrt(sum(surf_obj_burn_2$n.risk^2*Rsk1Frac*(1-Rsk1Frac)*surf_obj_burn_2$n.ev))
+round(c(stat = Gehan, chisq= Gehan^2, pval=1-pchisq(Gehan^2,1)),3)
+
+TaronWar = sum(sqrt(surf_obj_burn_2$n.risk)*(Dth1 - Rsk1Frac*surf_obj_burn_2$n.ev))/sqrt(sum(surf_obj_burn_2$n.risk*Rsk1Frac*(1-Rsk1Frac)*surf_obj_burn_2$n.ev))
+round(c(stat = TaronWar, chisq= TaronWar^2, pval=1-pchisq(TaronWar^2,1)),3)
+```
+```{r}
+rat_data <- as.data.frame(matrix(c(20,21,23,24,24,26,26,27,28,30,26,28,29,29,30,30,31,31,32,35,31,32,34,35,36,38,38,39,42,42,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,3,3,3,3,3,3,3,3,3,3,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,0,0), nrow=30,byrow=FALSE))
+
+colnames(rat_data) <- c('death_times','treatment','censored')
+
+rat_data
+```
+```{r}
+kmp <-survfit(Surv(rat_data$death_times,rat_data$censored)~rat_data$treatment,type="kaplan-meier")
+
+ggsurv_rats <- ggsurvplot(kmp, data = rat_data, xlab="Days to death",
+                          ylab="Survival Estimate",
+                          legend.labs = c("Untreated", "Radiated", "Radiated+BPA"), 
+                          linetype = 'strata') + 
+        labs(title = "Survival estimates for rats in the study",
+        subtitle = "Based on Kaplan-Meier estimates")
+
+ggsurv_rats <- ggpar(ggsurv_rats, 
+                     font.title    = c(14, "bold"),
+                     font.subtitle = c(12, "bold.italic"),        
+                     font.x        = c(11, "plain"),          
+                     font.y        = c(11, "plain"))
+
+print(ggsurv_rats)
+
+summary(kmp)
+```
+```{r}
+rats_1_2 <- rat_data[rat_data$treatment == 1 | rat_data$treatment == 2,]
+rats_1_3 <- rat_data[rat_data$treatment == 1 | rat_data$treatment == 3,]
+rats_2_3 <- rat_data[rat_data$treatment == 2 | rat_data$treatment == 3,]
+
+rats_surv_1_2 <- survdiff(Surv(time = rats_1_2$death_times, 
+                         event = rats_1_2$censored)~rats_1_2$treatment)
+
+print(rats_surv_1_2$chisq)
+
+print(pchisq(rats_surv_1_2$chisq,1,lower.tail = FALSE))
+
+rats_surv_1_3 <- survdiff(Surv(time = rats_1_3$death_times, 
+                         event = rats_1_3$censored)~rats_1_3$treatment)
+
+print(rats_surv_1_3$chisq)
+
+print(pchisq(rats_surv_1_3$chisq,1,lower.tail = FALSE))
+
+rats_surv_2_3 <- survdiff(Surv(time = rats_2_3$death_times, 
+                         event = rats_2_3$censored)~rats_2_3$treatment)
+
+print(rats_surv_2_3$chisq)
+
+print(pchisq(rats_surv_2_3$chisq,1,lower.tail = FALSE))
+```
