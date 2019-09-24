@@ -42,7 +42,7 @@ proc phreg data=burn;
 	*model t3*cens3(0)= group z112 z113 z114 z3 z4/ ties=breslow;
 	*model t3*cens3(0)= group z112 z113 z114 z3 z2 Z4/ ties=breslow;
 run;
-
+/*
 proc phreg data=burn;
 	model t3*cens3(0)= group z4/ covb;
 	output out=surv_est survival=survival /method=CH;
@@ -50,8 +50,8 @@ run;
 
 proc print data=surv_est;
 run;
+*/
 
-/*
 data variable;
 input group z4;
 datalines;
@@ -61,11 +61,10 @@ datalines;
 
 proc phreg data=burn;
 	model t3*cens3(0)= group z4/ ties=breslow;
-	baseline out=test_2 covariates=variable survival=survival L=LCL U=UCL/
+	baseline out=spec_surv_est covariates=variable survival=survival/
 	method=CH cltype=loglog;
 run;
-*/
-/*
-proc print data=test_2;
+
+proc print data=spec_surv_est;
 run;
-*/
+
