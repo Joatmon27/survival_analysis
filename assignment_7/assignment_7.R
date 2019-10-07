@@ -66,6 +66,13 @@ risk<-0.4609544*section1_11$Tumor
 dev.res<-residuals(coxph(Surv(section1_11$Death,section1_11$Censored)~section1_11$Tumor,method="breslow"),type="deviance")
 plot(x=risk,y=dev.res,main="Plot for outliers - deviance residuals",xlab="risk scores",ylab="deviance residuals")
 abline(h=1.96,lty=7)
+abline(h=-1.96,lty=7)
+
+section1_11[abs(dev.res) >= 1.96]
+
+dev.res[abs(dev.res) >= 1.96]
+
+hist(section1_11$Death[section1_11$Tumor==2])
 
 section1_6 <- fread('Section1_6.dat')
 
@@ -75,3 +82,20 @@ risk_burn <-2.127598*section1_6$V5
 mart_res_burn <- residuals(coxph(Surv(section1_6$V17,section1_6$V18)~section1_6$V4,method="breslow"),type="martingale")
 plot(x=risk_burn,y=mart_res_burn,main="Plot for outliers - martingale residuals",xlab="risk scores",ylab="martingale residuals")
 abline(h=1.96,lty=7)
+
+#Theta that maximizes likelihood
+like<-NULL
+
+for (j in unique(section1_6$V5)){
+  ind<-ifelse((section1_6$V5>j),1,0)
+  temp<-coxph(Surv(section1_6$V17,section1_6$V18)~ind,method="breslow")$loglik[[2]]
+  like<-rbind(like,c(j,temp))
+}
+
+dimnames(like)<-list(c(),c("burn_ind","like"))
+like<-like[sort.list(like[,"burn_ind"]),]
+
+plot(x=like[,"burn_ind"],y=like[,"like"],type="s",main="Likelihood for cutpoints",xlab="Cutpoints for theta",ylab="Likelihood")
+abline(v=like[like[,2]==max(like[,2]),1],lty=7)
+print(like)
+print(like[like[,2]==max(like[,2]),])
