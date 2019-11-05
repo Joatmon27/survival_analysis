@@ -60,8 +60,8 @@ print(0.748251879 - (qnorm(0.975,0,1)*0.043361))
 print(0.488086846 + (qnorm(0.975,0,1)*0.092543))
 print(0.488086846 - (qnorm(0.975,0,1)*0.092543))
 
-print(1172 + (qnorm(0.975,0,1)*0.23866))
-print(1172 - (qnorm(0.975,0,1)*0.23866))
+print(0.2395865 + (qnorm(0.975,0,1)*0.23866))
+print(0.2395865 - (qnorm(0.975,0,1)*0.23866))
 ```
 
 Highlight biggest time where S(t) is just smaller than 0.75,0.5,0.25 for each infection type.
