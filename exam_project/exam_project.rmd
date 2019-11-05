@@ -9,6 +9,7 @@ library(survminer)
 ```
 
 # Part A
+## Question 1
 
 ```{r}
 std <- read_xlsx('data/std_2019_pw.xlsx')
@@ -29,4 +30,19 @@ ggsurv <- ggpar(ggsurv, font.title    = c(14, "bold"),
 print(ggsurv)
 ```
 
-From Figure 1 we can see that Chlamydia has an overall higher survival rate in terms of re-infection than does Gonorrhea.  A person who has been infected with both appears to lie in between the the singular infection, perhaps being pulled up by the higher survival rate of Chlamydia
+From Figure 1 we can see that Chlamydia has an overall higher survival rate in terms of re-infection than does Gonorrhea.  A person who has been infected with both appears to lie in between the two singular infections, perhaps being pulled up by the higher survival rate of Chlamydia
+
+## Question 2
+
+```{r}
+library(ggfortify)
+
+write.csv(fortify(kmp),file = 'std_summary.csv')
+```
+
+Highlight biggest time where S(t) is just smaller than 0.75,0.5,0.25 for each infection type.
+
+## Question 3
+```{r}
+
+```
