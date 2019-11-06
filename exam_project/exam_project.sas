@@ -30,6 +30,7 @@ time time*cens(0);
 strata type;
 run;
 */
+/*
 data std_rr;
 	label time ='Days to re-infection' type ='Infection Type';
 	infile 'H:\Werk\Survival Analysis\survival_analysis\exam_project\data\std_2019_pw_rr.csv'
@@ -40,4 +41,24 @@ run;
 
 proc phreg data=std_rr;
 	model time*cens(0)=type_both type_chl /covb  ;
+run;
+*//*
+title 'Time to re-infection of STDs';
+
+proc phreg data = std_rr;
+model time*cens(0)= type_both type_chl X Y;
+X=type_both*(log(time));
+Y=type_chl*(log(time));
+run;*/
+/*
+proc phreg data = std_rr;
+model time*cens(0)= type_both type_chl;
+run;
+*/
+/*
+Question 5
+*/
+proc lifetest data=std;
+time time*cens(0);
+strata type condom /test=FLEMING(1,1);
 run;
