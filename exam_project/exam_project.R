@@ -42,6 +42,33 @@ plot(aa_strat,fun="cumhaz",main="Cox-Snell residual plot",xlab="residuals",ylab=
 abline(0,1,lty=6,col='orange')
 legend(legend=c('Gonorrhea','Both', 'Chlamydia','45` Line'),lty = c(1,2,3,6),col=c('green','blue','red','orange'),'topright')
 
+##### Cox Snell
+
+surv_reg_obj <- survreg(Surv(std_rr$time, std_rr$cens)~ std_rr$type_chl+std_rr$type_both+std_rr$condom, dist="weibull")
+
+hat_sig <- surv_reg_obj$scale
+
+hat_alpha <- 1/hat_sig
+
+reg_linear <- surv_reg_obj$linear.predictor
+
+reg_linear_mdf <- -reg_linear/hat_sig
+
+tt <- cbind(Surv(std_rr$time, std_rr$cens))[,1]
+
+cs_resid <- exp(reg_linear_mdf)*tt^(hat_alpha)
+
+cs_fit = survfit(Surv(cs_resid,std_rr$cens)~1,type="kaplan-meier")
+
+par(mfrow=c(1,1))
+
+plot(x=cs_fit$time, y=-log(cs_fit$surv),type ="s",  
+     ylab = "Estimated Cumulative H(t)",  
+     xlab= "Cox–Snell Residuals",
+     main="Cox–Snell residuals to assess the fit of the Weibull regression model")
+
+lines(c(0,3),c(0,3), lty=2)
+
 #######################################
 ## Part B
 ######################################
