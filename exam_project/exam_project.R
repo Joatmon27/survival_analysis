@@ -42,33 +42,6 @@ plot(aa_strat,fun="cumhaz",main="Cox-Snell residual plot",xlab="residuals",ylab=
 abline(0,1,lty=6,col='orange')
 legend(legend=c('Gonorrhea', 'Chlamydia','Both','45` Line'),lty = c(1,2,3,6),col=c('green','blue','red','orange'),'topright')
 
-##### Cox Snell
-
-surv_reg_obj <- survreg(Surv(std_rr$time, std_rr$cens)~ std_rr$type_chl+std_rr$type_both+std_rr$condom, dist="weibull")
-?survreg
-hat_sig <- surv_reg_obj$scale
-
-hat_alpha <- 1/hat_sig
-
-reg_linear <- surv_reg_obj$linear.predictor
-
-reg_linear_mdf <- -reg_linear/hat_sig
-
-tt <- cbind(Surv(std_rr$time, std_rr$cens))[,1]
-
-cs_resid <- exp(reg_linear_mdf)*tt^(hat_alpha)
-
-cs_fit = survfit(Surv(cs_resid,std_rr$cens)~1,type="kaplan-meier")
-
-par(mfrow=c(1,1))
-
-plot(x=cs_fit$time, y=-log(cs_fit$surv),type ="s",  
-     ylab = "Estimated Cumulative H(t)",  
-     xlab= "Cox–Snell Residuals",
-     main="Cox–Snell residuals to assess the fit of the Weibull regression model")
-
-lines(c(0,3),c(0,3), lty=2)
-
 #######################################
 ## Part B
 ######################################
@@ -145,3 +118,57 @@ kmp<-survfit(Surv(std$time,std$cens)~std$type+std$condom, subset = std$type==3,t
 
 cox <- coxph(Surv(std$time,std$cens)~std$condom, subset = std_rr$type==3, method = 'breslow')
 cox$coefficients
+
+1-pchisq(0.0929 ,1)
+1-pchisq(0.4003 ,1)
+1-pchisq(9.2943 ,1)
+
+exp(-6.0075)
+exp(-0.189)
+exp(-0.4703)
+1/exp(-0.3312)
+
+
+std_rr <- read.csv('data/std_2019_pw_rr.csv')
+
+fit <- survreg(Surv(std_rr$time,std_rr$cen)~ as.factor(std_rr$type)+std_rr$condom_always, dist="exponential", data=std_rr)
+
+resids <- residuals(fit, type = "deviance")
+par(mfrow=c(1,1))
+plot(x=std_rr$obs,y=resids, main="Deviance plot for exponential model - STD study", xlab="Observations",ylab="Deviance residuals", col=std_rr$type)
+abline(h=c(-1.96,1.96),lty=7)
+legend(legend=c('Gonorrhea', 'Chlamydia','Both'),col=unique(std_rr$type),'topright',pch=1)
+
+#influential
+score.res <- residuals(fit,type="dfbeta")
+plot(1:length(std_rr$obs),y=score.res[,1],main="Score residuals for exponential model - STD study",xlab="Observations",ylab="Difference in betas", col=std_rr$type)
+abline(h=c(-0.03,0.03),lty=7)
+legend(legend=c('Gonorrhea', 'Chlamydia','Both'),col=unique(std_rr$type),'topright',pch=1)
+res=sort((score.res[,1]))
+
+##### Cox Snell
+
+surv_reg_obj <- survreg(Surv(std_rr$time, std_rr$cens)~ std_rr$type_chl+std_rr$type_both+std_rr$condom_always, dist="weibull")
+
+hat_sig <- surv_reg_obj$scale
+
+hat_alpha <- 1/hat_sig
+
+reg_linear <- surv_reg_obj$linear.predictor
+
+reg_linear_mdf <- -reg_linear/hat_sig
+
+tt <- cbind(Surv(std_rr$time, std_rr$cens))[,1]
+
+cs_resid <- exp(reg_linear_mdf)*tt^(hat_alpha)
+
+cs_fit = survfit(Surv(cs_resid,std_rr$cens)~1,type="kaplan-meier")
+
+par(mfrow=c(1,1))
+
+plot(x=cs_fit$time, y=-log(cs_fit$surv),type ="s",  
+     ylab = "Estimated Cumulative H(t)",  
+     xlab= "Cox–Snell Residuals",
+     main="Cox–Snell residuals to assess the fit of the Weibull regression model")
+lines(c(0,3),c(0,3), lty=2)
+legend(legend=c('Estimated H(t)','45` Line'),lty = c(1,2),'topright')
