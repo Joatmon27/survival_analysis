@@ -40,12 +40,12 @@ aa_strat <-survfit(surv_obj_strat,conf.type = 'none')
 
 plot(aa_strat,fun="cumhaz",main="Cox-Snell residual plot",xlab="residuals",ylab="estimated cumulative H(t)",lty=c(1,2,3),col=c('green','blue','red'))
 abline(0,1,lty=6,col='orange')
-legend(legend=c('Gonorrhea','Both', 'Chlamydia','45` Line'),lty = c(1,2,3,6),col=c('green','blue','red','orange'),'topright')
+legend(legend=c('Gonorrhea', 'Chlamydia','Both','45` Line'),lty = c(1,2,3,6),col=c('green','blue','red','orange'),'topright')
 
 ##### Cox Snell
 
 surv_reg_obj <- survreg(Surv(std_rr$time, std_rr$cens)~ std_rr$type_chl+std_rr$type_both+std_rr$condom, dist="weibull")
-
+?survreg
 hat_sig <- surv_reg_obj$scale
 
 hat_alpha <- 1/hat_sig
@@ -79,7 +79,7 @@ summary(kmp)
 
 ggsurv <- ggsurvplot(kmp , data = std, xlab="Days to re-infection",
                      ylab="Survival estimate",
-                     legend.labs = c("Gonorrhea-No_Condom","Gonorrhea-Condom_Always","Both-No_Condom","Both-Condom_Always","Chlamydia-No_Condom","Chlamydia-Condom_Always"), linetype = 'strata') + 
+                     legend.labs = c("Gonorrhea-No_Condom","Gonorrhea-Condom_Always","Chlamydia-No_Condom","Chlamydia-Condom_Always","Both-No_Condom","Both-Condom_Always"), linetype = 'strata') + 
   labs(title    = "Survival estimates for time to re-infection",
        subtitle = "Based on Kaplan-Meier estimates")
 
@@ -105,13 +105,11 @@ ggsurv <- ggpar(ggsurv, font.title    = c(14, "bold"),
 
 print(ggsurv)
 
-std <- read_xlsx('data/std_2019_pw.xlsx')
-
 kmp<-survfit(Surv(std$time,std$cens)~std$type+std$condom, subset = std$type==2,type="kaplan-meier")
 
 ggsurv <- ggsurvplot(kmp , data = std, xlab="Days to re-infection",
                      ylab="Survival estimate",
-                     legend.labs = c("Both-No_Condom","Both-Condom_Always"), linetype = 'strata') + 
+                     legend.labs = c("Chlamydia-No_Condom","Chlamydia-Condom_Always"), linetype = 'strata') + 
   labs(title    = "Survival estimates for time to re-infection",
        subtitle = "Based on Kaplan-Meier estimates")
 
@@ -126,7 +124,7 @@ kmp<-survfit(Surv(std$time,std$cens)~std$type+std$condom, subset = std$type==3,t
 
 ggsurv <- ggsurvplot(kmp , data = std, xlab="Days to re-infection",
                      ylab="Survival estimate",
-                     legend.labs = c("Chlamydia-No_Condom","Chlamydia-Condom_Always"), linetype = 'strata') + 
+                     legend.labs = c("Both-No_Condom","Both-Condom_Always"), linetype = 'strata') + 
   labs(title    = "Survival estimates for time to re-infection",
        subtitle = "Based on Kaplan-Meier estimates")
 
@@ -136,3 +134,14 @@ ggsurv <- ggpar(ggsurv, font.title    = c(14, "bold"),
                 font.y        = c(11, "plain"))
 
 print(ggsurv)
+
+exp(0.0023+1.96*0.0004209)
+exp(0.0023-1.96*0.0004209)
+
+exp(0.0007958+1.96*0.0004560)
+exp(0.0007958-1.96*0.0004560)
+
+kmp<-survfit(Surv(std$time,std$cens)~std$type+std$condom, subset = std$type==3,type="kaplan-meier")
+
+cox <- coxph(Surv(std$time,std$cens)~std$condom, subset = std_rr$type==3, method = 'breslow')
+cox$coefficients

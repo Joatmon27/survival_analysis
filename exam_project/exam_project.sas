@@ -78,8 +78,57 @@ data std_rr;
 		firstobs=2 dlm=',';
 	input obs race_B mar_S mar_D age school type part oral12 oral30 rec12 rec30 abdom dis dys condom 
 		  itch lesion rash lymph vag disexam node cens time type_both type_chl @@;
+	chl_condom = type_chl*condom;
+	both_condom = type_both*condom;
+	type_condom = type*condom;
+run;
+/*
+proc phreg data=std_rr;
+	model time*cens(0)= condom /covb  ;
+run;
+*/
+/*
+proc phreg data=std_rr;
+	model time*cens(0)=type_both type_chl chl_condom both_condom type_condom /covb  ;
+	test3: test type_condom=0/print;
+run;
+*/
+/*
+proc phreg data=std_rr;
+	model time*cens(0)=condom /covb;
+run;
+*/
+/*
+proc phreg data=std_rr;
+	model time*cens(0)=type_chl type_both condom /covb  ;
+	test1: test type_chl=type_both=0/print;
+run;
+*/
+
+/*Part C*/
+/*Question 1*/
+
+/* Weibull distribution model*/ 
+proc lifereg data=std_rr; 
+model time*cens(0)=type_chl type_both condom/ dist=weibull alpha=0.05 covb; 
+run; 
+
+/* Exponential distribution model*/ 
+proc lifereg data=std_rr; 
+model time*cens(0)=type_chl type_both condom/ dist=exponential alpha=0.05 covb; 
+run; 
+
+/* Log normal distribution*/ 
+proc lifereg data=std_rr; 
+model time*cens(0)=type_chl type_both condom/ dist=lognormal alpha=0.05 covb; 
+run; 
+
+/* Log logistic distribution model*/ 
+proc lifereg data=std_rr; 
+model time*cens(0)=type_chl type_both condom/ dist=lologistic alpha=0.05 covb; 
 run;
 
-proc phreg data=std_rr;
-	model time*cens(0)=type_both type_chl condom /covb  ;
+/* gamma distribution model*/ 
+proc lifereg data=std_rr; 
+model time*cens(0)=type_chl type_both condom/ dist=gamma alpha=0.05 covb; 
 run;

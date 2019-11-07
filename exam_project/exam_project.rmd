@@ -117,7 +117,26 @@ abline(0,1,lty=6)
 legend(legend=c('Aneuploid','Diploid','45` Line'),lty = c(1,2,6),'topright')
 
 ```
+
+
 ```{r}
+kmp<-survfit(Surv(std$time,std$cens)~std$type+std$condom,type="kaplan-meier")
+
+summary(kmp)
+
+ggsurv <- ggsurvplot(kmp , data = std, xlab="Days to re-infection",
+                     ylab="Survival estimate",
+                     legend.labs = c("Gonorrhea-No_Condom","Gonorrhea-Condom_Always","Both-No_Condom","Both-Condom_Always","Chlamydia-No_Condom","Chlamydia-Condom_Always"), linetype = 'strata') + 
+  labs(title    = "Survival estimates for time to re-infection",
+       subtitle = "Based on Kaplan-Meier estimates")
+
+ggsurv <- ggpar(ggsurv, font.title    = c(14, "bold"),
+                font.subtitle = c(12, "bold.italic"),        
+                font.x        = c(11, "plain"),          
+                font.y        = c(11, "plain"))
+
+print(ggsurv)
+
 kmp<-survfit(Surv(std$time,std$cens)~std$type+std$condom, subset = std$type==1,type="kaplan-meier")
 
 ggsurv <- ggsurvplot(kmp , data = std, xlab="Days to re-infection",
@@ -132,9 +151,7 @@ ggsurv <- ggpar(ggsurv, font.title    = c(14, "bold"),
                 font.y        = c(11, "plain"))
 
 print(ggsurv)
-```
 
-```{r}
 std <- read_xlsx('data/std_2019_pw.xlsx')
 
 kmp<-survfit(Surv(std$time,std$cens)~std$type+std$condom, subset = std$type==2,type="kaplan-meier")
@@ -152,9 +169,6 @@ ggsurv <- ggpar(ggsurv, font.title    = c(14, "bold"),
 
 print(ggsurv)
 
-```
-
-```{r}
 kmp<-survfit(Surv(std$time,std$cens)~std$type+std$condom, subset = std$type==3,type="kaplan-meier")
 
 ggsurv <- ggsurvplot(kmp , data = std, xlab="Days to re-infection",
@@ -171,6 +185,12 @@ ggsurv <- ggpar(ggsurv, font.title    = c(14, "bold"),
 print(ggsurv)
 ```
 
+```{r}
+exp(0.0023+1.96*0.0004209)
+exp(0.0023-1.96*0.0004209)
 
+exp(0.0007958+1.96*0.0004560)
+exp(0.0007958-1.96*0.0004560)
+```
 
 
